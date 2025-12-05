@@ -1,0 +1,33 @@
+# Environment
+node_modules/
+dist/
+.DS_Store
+*.log
+*.log.*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Database
+*.db
+*.sqlite
+postgres_data/
+
+# Build outputs
+build/
+out/
+
+# Testing
+coverage/
+
+# OS
+Thumbs.db
