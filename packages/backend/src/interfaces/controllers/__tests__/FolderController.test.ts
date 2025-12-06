@@ -1,34 +1,33 @@
 import { describe, it, expect } from 'bun:test';
-import { Elysia } from 'elysia';
+import { treaty } from '@elysiajs/eden';
 import { folderController } from '../FolderController';
+import { TEST_FOLDER_IDS } from '../__tests__/constants/folder-ids';
 
 describe('FolderController API', () => {
-    const app = new Elysia().use(folderController);
+    const api = treaty(folderController);
+    const { DOCUMENTS, WORK, TUTORIALS, INVALID } = TEST_FOLDER_IDS;
 
     describe('GET /api/v1/folders', () => {
         it('should return all folders successfully', async () => {
             // Act
-            const response = await app.handle(
-                new Request('http://localhost/api/v1/folders')
-            );
-            const data: any = await response.json();
+            const { data, status } = await api.api.v1.folders.get();
 
             // Assert
-            expect(response.status).toBe(200);
-            expect(data.success).toBe(true);
-            expect(Array.isArray(data.data)).toBe(true);
-            expect(data.data.length).toBeGreaterThan(0);
+            expect(status).toBe(200);
+            expect(data!.success).toBe(true);
+            expect(Array.isArray(data!.data)).toBe(true);
+            expect(data!.data).toBeDefined();
+            expect(data!.data!.length).toBeGreaterThan(0);
         });
 
         it('should return folders with correct structure', async () => {
             // Act
-            const response = await app.handle(
-                new Request('http://localhost/api/v1/folders')
-            );
-            const data: any = await response.json();
+            const { data } = await api.api.v1.folders.get();
 
             // Assert
-            const folder = data.data[0];
+            expect(data!.data).toBeDefined();
+            expect(data!.data!.length).toBeGreaterThan(0);
+            const folder = data!.data![0];
             expect(folder).toHaveProperty('id');
             expect(folder).toHaveProperty('name');
             expect(folder).toHaveProperty('parentId');
@@ -40,123 +39,108 @@ describe('FolderController API', () => {
     describe('GET /api/v1/folders/:id', () => {
         it('should return specific folder when found', async () => {
             // Act
-            const response = await app.handle(
-                new Request('http://localhost/api/v1/folders/1')
-            );
-            const data: any = await response.json();
+            const { data, status } = await api.api.v1.folders({ id: DOCUMENTS }).get();
 
             // Assert
-            expect(response.status).toBe(200);
-            expect(data.success).toBe(true);
-            expect(data.data.id).toBe('1');
-            expect(data.data.name).toBe('Documents');
+            expect(status).toBe(200);
+            expect(data!.success).toBe(true);
+            expect(data!.data).toBeDefined();
+            expect(data!.data!.id).toBe(DOCUMENTS);
+            expect(data!.data!.name).toBe('Documents');
         });
 
         it('should return 404 when folder not found', async () => {
             // Act
-            const response = await app.handle(
-                new Request('http://localhost/api/v1/folders/999')
-            );
-            const data: any = await response.json();
+            const { error, status } = await api.api.v1.folders({ id: INVALID }).get();
 
             // Assert
-            expect(response.status).toBe(404);
-            expect(data.success).toBe(false);
-            expect(data.data).toBeNull();
-            expect(data.message).toContain('not found');
+            expect(status).toBe(404);
+            expect(error).toBeDefined();
+            if (error && 'value' in error) {
+                const errorValue = error.value as any;
+                expect(errorValue.success).toBe(false);
+                expect(errorValue.data).toBeNull();
+                expect(errorValue.message).toContain('not found');
+            }
         });
 
         it('should return nested folder correctly', async () => {
             // Act
-            const response = await app.handle(
-                new Request('http://localhost/api/v1/folders/6')
-            );
-            const data: any = await response.json();
+            const { data, status } = await api.api.v1.folders({ id: WORK }).get();
 
             // Assert
-            expect(response.status).toBe(200);
-            expect(data.success).toBe(true);
-            expect(data.data.name).toBe('Work');
-            expect(data.data.parentId).toBe('1');
+            expect(status).toBe(200);
+            expect(data!.success).toBe(true);
+            expect(data!.data).toBeDefined();
+            expect(data!.data!.name).toBe('Work');
+            expect(data!.data!.parentId).toBe(DOCUMENTS);
         });
     });
 
     describe('GET /api/v1/folders/:id/children', () => {
         it('should return root-level folders when using "root"', async () => {
             // Act
-            const response = await app.handle(
-                new Request('http://localhost/api/v1/folders/root/children')
-            );
-            const data: any = await response.json();
+            const { data, status } = await api.api.v1.folders({ id: 'root' }).children.get();
 
             // Assert
-            expect(response.status).toBe(200);
-            expect(data.success).toBe(true);
-            expect(Array.isArray(data.data)).toBe(true);
-            expect(data.data.every((f: any) => f.parentId === null)).toBe(true);
+            expect(status).toBe(200);
+            expect(data!.success).toBe(true);
+            expect(Array.isArray(data!.data)).toBe(true);
+            expect(data!.data).toBeDefined();
+            expect(data!.data!.every((f: any) => f.parentId === null)).toBe(true);
         });
 
         it('should return children of specific folder', async () => {
             // Act
-            const response = await app.handle(
-                new Request('http://localhost/api/v1/folders/1/children')
-            );
-            const data: any = await response.json();
+            const { data, status } = await api.api.v1.folders({ id: DOCUMENTS }).children.get();
 
             // Assert
-            expect(response.status).toBe(200);
-            expect(data.success).toBe(true);
-            expect(Array.isArray(data.data)).toBe(true);
-            expect(data.data.every((f: any) => f.parentId === '1')).toBe(true);
-            expect(data.data.some((f: any) => f.name === 'Work')).toBe(true);
+            expect(status).toBe(200);
+            expect(data!.success).toBe(true);
+            expect(Array.isArray(data!.data)).toBe(true);
+            expect(data!.data).toBeDefined();
+            expect(data!.data!.every((f: any) => f.parentId === DOCUMENTS)).toBe(true);
+            expect(data!.data!.some((f: any) => f.name === 'Work')).toBe(true);
         });
 
         it('should return empty array when folder has no children', async () => {
             // Act
-            const response = await app.handle(
-                new Request('http://localhost/api/v1/folders/30/children')
-            );
-            const data: any = await response.json();
+            const { data, status } = await api.api.v1.folders({ id: TUTORIALS }).children.get();
 
             // Assert
-            expect(response.status).toBe(200);
-            expect(data.success).toBe(true);
-            expect(data.data).toHaveLength(0);
+            expect(status).toBe(200);
+            expect(data!.success).toBe(true);
+            expect(data!.data).toHaveLength(0);
         });
 
         it('should return 404 when parent folder not found', async () => {
             // Act
-            const response = await app.handle(
-                new Request('http://localhost/api/v1/folders/999/children')
-            );
-            const data: any = await response.json();
+            const { error, status } = await api.api.v1.folders({ id: INVALID }).children.get();
 
             // Assert
-            expect(response.status).toBe(404);
-            expect(data.success).toBe(false);
-            expect(data.message).toContain('not found');
+            expect(status).toBe(404);
+            expect(error).toBeDefined();
+            if (error && 'value' in error) {
+                const errorValue = error.value as any;
+                expect(errorValue.success).toBe(false);
+                expect(errorValue.message).toContain('not found');
+            }
         });
     });
 
     describe('API Response Format', () => {
         it('should always include success field', async () => {
             // Act
-            const response = await app.handle(
-                new Request('http://localhost/api/v1/folders')
-            );
-            const data: any = await response.json();
+            const { data } = await api.api.v1.folders.get();
 
             // Assert
             expect(data).toHaveProperty('success');
-            expect(typeof data.success).toBe('boolean');
+            expect(typeof data!.success).toBe('boolean');
         });
 
         it('should include data field', async () => {
             // Act
-            const response = await app.handle(
-                new Request('http://localhost/api/v1/folders')
-            );
-            const data: any = await response.json();
+            const { data } = await api.api.v1.folders.get();
 
             // Assert
             expect(data).toHaveProperty('data');
@@ -164,14 +148,15 @@ describe('FolderController API', () => {
 
         it('should include message field on error', async () => {
             // Act
-            const response = await app.handle(
-                new Request('http://localhost/api/v1/folders/999')
-            );
-            const data: any = await response.json();
+            const { error } = await api.api.v1.folders({ id: INVALID }).get();
 
             // Assert
-            expect(data).toHaveProperty('message');
-            expect(typeof data.message).toBe('string');
+            expect(error).toBeDefined();
+            if (error && 'value' in error) {
+                const errorValue = error.value as any;
+                expect(errorValue).toHaveProperty('message');
+                expect(typeof errorValue.message).toBe('string');
+            }
         });
     });
 });

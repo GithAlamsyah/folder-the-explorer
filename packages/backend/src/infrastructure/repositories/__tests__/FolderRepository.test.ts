@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'bun:test';
 import { FolderRepository } from '../FolderRepository';
+import { TEST_FOLDER_IDS } from '../__tests__/constants/folder-ids';
 
 describe('FolderRepository', () => {
     let repository: FolderRepository;
@@ -8,6 +9,8 @@ describe('FolderRepository', () => {
     const setup = () => {
         repository = new FolderRepository();
     };
+
+    const { DOCUMENTS, WORK, TUTORIALS, INVALID } = TEST_FOLDER_IDS;
 
     describe('getAll', () => {
         it('should return all folders', async () => {
@@ -45,11 +48,11 @@ describe('FolderRepository', () => {
             setup();
 
             // Act
-            const result = await repository.getById('1');
+            const result = await repository.getById(DOCUMENTS);
 
             // Assert
             expect(result).not.toBeNull();
-            expect(result?.id).toBe('1');
+            expect(result?.id).toBe(DOCUMENTS);
             expect(result?.name).toBe('Documents');
         });
 
@@ -58,7 +61,7 @@ describe('FolderRepository', () => {
             setup();
 
             // Act
-            const result = await repository.getById('999');
+            const result = await repository.getById(INVALID);
 
             // Assert
             expect(result).toBeNull();
@@ -69,12 +72,12 @@ describe('FolderRepository', () => {
             setup();
 
             // Act
-            const result = await repository.getById('6');
+            const result = await repository.getById(WORK);
 
             // Assert
             expect(result).not.toBeNull();
             expect(result?.name).toBe('Work');
-            expect(result?.parentId).toBe('1');
+            expect(result?.parentId).toBe(DOCUMENTS);
             expect(result?.level).toBe(1);
         });
     });
@@ -98,11 +101,11 @@ describe('FolderRepository', () => {
             setup();
 
             // Act
-            const result = await repository.getChildren('1'); // Documents folder
+            const result = await repository.getChildren(DOCUMENTS); 
 
             // Assert
             expect(result.length).toBeGreaterThan(0);
-            expect(result.every(f => f.parentId === '1')).toBe(true);
+            expect(result.every(f => f.parentId === DOCUMENTS)).toBe(true);
             expect(result.some(f => f.name === 'Work')).toBe(true);
             expect(result.some(f => f.name === 'Personal')).toBe(true);
         });
@@ -112,7 +115,7 @@ describe('FolderRepository', () => {
             setup();
 
             // Act
-            const result = await repository.getChildren('30'); // Tutorials folder (leaf node)
+            const result = await repository.getChildren(TUTORIALS); 
 
             // Assert
             expect(result).toHaveLength(0);
@@ -123,7 +126,7 @@ describe('FolderRepository', () => {
             setup();
 
             // Act
-            const result = await repository.getChildren('999');
+            const result = await repository.getChildren(INVALID);
 
             // Assert
             expect(result).toHaveLength(0);
@@ -134,8 +137,8 @@ describe('FolderRepository', () => {
             setup();
 
             // Act
-            const level1 = await repository.getChildren('1'); // Documents children
-            const level2 = await repository.getChildren('6'); // Work children
+            const level1 = await repository.getChildren(DOCUMENTS); 
+            const level2 = await repository.getChildren(WORK); 
 
             // Assert
             expect(level1.every(f => f.level === 1)).toBe(true);

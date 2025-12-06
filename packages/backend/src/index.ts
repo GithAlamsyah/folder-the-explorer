@@ -1,8 +1,12 @@
 import { Elysia } from 'elysia';
 import { cors } from '@elysiajs/cors';
 import { folderController } from './interfaces/controllers/FolderController';
+import { runMigrations } from './infrastructure/database/migrate';
 
 const PORT = process.env.PORT || 3000;
+
+// Run migrations on application startup
+await runMigrations();
 
 const app = new Elysia()
     .use(cors())

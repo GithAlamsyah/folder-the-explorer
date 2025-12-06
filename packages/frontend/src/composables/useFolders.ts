@@ -1,6 +1,6 @@
 import { ref, onMounted } from 'vue';
 import type { Folder, FolderNode } from '../types';
-import { folderApi } from '../api';
+import folderApi from '../api';
 
 /**
  * Composable for folder state management

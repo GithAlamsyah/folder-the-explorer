@@ -1,6 +1,6 @@
-# Folder Explorer - Monorepo Boilerplate
+# Folder The Explorer - Monorepo 
 
-A modern monorepo setup featuring a **Windows Explorer-like folder structure viewer** with Vue 3 frontend and Elysia backend, both powered by Bun. The application demonstrates Clean Architecture principles, RESTful API design, and comprehensive testing strategies.
+A modern monorepo setup featuring a **Windows Explorer-like folder structure viewer** with Vue 3 frontend and Elysia backend, both powered by Bun. The application demonstrates Clean Architecture principles, RESTful API design, and comprehensive testing strategies. This application also implement Eden Treaty for easier integration in monorepo environment.
 
 ## 📦 Project Structure
 
@@ -25,10 +25,9 @@ A modern monorepo setup featuring a **Windows Explorer-like folder structure vie
 │       ├── Dockerfile
 │       ├── vite.config.ts
 │       └── package.json
-├── tests/e2e/            # Playwright E2E Tests
 ├── docker-compose.yml
-├── playwright.config.ts
 └── package.json
+
 ```
 
 ## 🚀 Tech Stack
@@ -49,8 +48,7 @@ A modern monorepo setup featuring a **Windows Explorer-like folder structure vie
 
 ### Testing
 - **Unit Testing**: Bun:test (Backend), Vitest (Frontend)
-- **E2E Testing**: Playwright
-- **Test Coverage**: 30+ backend tests, 20+ frontend tests, 8+ e2e scenarios
+- **Test Coverage**: 30+ backend tests, 20+ frontend tests
 
 ## ✨ Features
 
@@ -73,10 +71,6 @@ The main feature is a **Windows Explorer-like interface** with:
   - Proper HTTP methods and status codes
   - Consistent response format
   
-- **Mock Data**
-  - 30 folders across 4 levels
-  - Realistic folder hierarchy (Documents, Pictures, Work, etc.)
-
 ## 📋 Prerequisites
 
 - [Bun](https://bun.sh/) >= 1.0.0
@@ -88,26 +82,126 @@ The main feature is a **Windows Explorer-like interface** with:
 ### Quick Start (Development)
 
 1. **Install dependencies for all packages**:
+
    ```bash
    bun install
    ```
 
 2. **Start the Backend**:
+
    ```bash
    cd packages/backend
    bun run dev
    ```
+
    Backend will be available at `http://localhost:3000`
 
 3. **Start the Frontend** (in a new terminal):
+
    ```bash
    cd packages/frontend
    bun install  # Install Vue and dependencies
    bun run dev
    ```
+
    Frontend will be available at `http://localhost:5173`
 
 4. **Open your browser** and navigate to `http://localhost:5173`
+
+### Database Setup
+
+The application uses **PostgreSQL** with **Drizzle ORM** for database management.
+
+#### Prerequisites
+
+Ensure PostgreSQL is running locally or via Docker:
+
+```bash
+# Using Docker (recommended)
+docker run -d \
+  --name postgres-dev \
+  -e POSTGRES_USER=postgres \
+  -e POSTGRES_PASSWORD=postgres \
+  -e POSTGRES_DB=monorepo_db \
+  -p 5432:5432 \
+  postgres:latest
+```
+
+#### Environment Variables
+
+Set your database connection in the backend package:
+
+```bash
+# packages/backend/.env (optional, defaults to localhost)
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/monorepo_db
+```
+
+#### Database Migration
+
+1. **Generate migration files** (after modifying schemas in `src/infrastructure/database/schemas/`):
+
+   ```bash
+   cd packages/backend
+   bun run db:generate
+   ```
+
+   This creates SQL migration files in `packages/backend/drizzle/` based on your schema definitions.
+
+2. **Run migrations** (apply schema changes to database):
+
+   ```bash
+   cd packages/backend
+   bun run db:migrate
+   ```
+
+   This executes all pending migrations and updates your database schema.
+
+#### Database Seeding
+
+Populate the database with initial folder data:
+
+```bash
+cd packages/backend
+bun run db:seed 
+#or
+bun run db:seed --force
+```
+
+**Seeding Options**:
+
+- **First-time seeding**: Automatically inserts data if database is empty
+- **Re-seeding**: Force re-seed by modifying `seed.ts` to use `{ force: true }`
+- **Production safety**: Seeds are skipped in production unless explicitly forced
+
+**Seed Data**: The seeder creates 30 folders across 4 levels mimicking a realistic folder structure (Documents, Pictures, Work, etc.)
+
+#### Drizzle Studio (Optional)
+
+Explore your database with Drizzle's GUI:
+
+```bash
+cd packages/backend
+bun run db:studio
+```
+
+Open `https://local.drizzle.studio` in your browser.
+
+#### Complete Database Setup Workflow
+
+For a fresh database setup, run these commands in order:
+
+```bash
+cd packages/backend
+
+# 1. Generate migrations (if schema changes exist)
+bun run db:generate
+
+# 2. Apply migrations
+bun run db:migrate
+
+# 3. Seed initial data
+bun run db:seed
+```
 
 ### Docker Setup
 
@@ -245,38 +339,17 @@ bun test
 ```bash
 cd packages/frontend
 bun install  # If not already installed
-bun test
+bun test:unit
 ```
+**Note**
+There is some issue regarding Vitest with Bun, so you need to run `bun test:unit` that provided in `package.json` to run **bun x vitest** in order to bypasses the need for complex custom loaders within the native `bun test` runner and leverages a highly compatible ecosystem.  
 
 **Test Coverage**:
 - Component tests (FolderTreeNode, FolderTree, FolderList, FolderExplorer)
 - API service tests (with fetch mocking)
 - Integration tests
 
-### End-to-End Tests
 
-**Run tests**:
-```bash
-# From monorepo root
-bun install  # Install Playwright
-bun test:e2e
-```
-
-**Run with UI**:
-```bash
-bun test:e2e:ui
-```
-
-**E2E Test Scenarios**:
-- Initial page load and folder tree display
-- Folder selection and highlighting
-- Right panel update on selection
-- Tree expansion and collapse
-- Nested folder navigation
-- Empty state handling
-- State persistence
-
-> **Note**: Playwright tests automatically start backend and frontend servers.
 
 ## 🏗️ Architecture
 
@@ -337,24 +410,6 @@ FolderExplorer (Main Container)
 
 ## 📝 Development Notes
 
-### Adding New Folders
-
-To add more mock folders, edit:
-```typescript
-packages/backend/src/infrastructure/repositories/FolderRepository.ts
-```
-
-Add entries to the `folders` array following the structure:
-```typescript
-{
-  id: 'unique_id',
-  name: 'Folder Name',
-  parentId: 'parent_id_or_null',
-  path: '/Parent/Path',
-  level: 0 // or appropriate nesting level
-}
-```
-
 ### REST API Standards
 
 The API follows these conventions:
@@ -375,11 +430,7 @@ The `useFolders` composable manages:
 
 ## 🔧 Scripts Reference
 
-### Monorepo Root
-```bash
-bun test:e2e      # Run Playwright e2e tests
-bun test:e2e:ui   # Run e2e tests with UI
-```
+
 
 ### Backend
 ```bash

@@ -185,4 +185,4 @@ export function createFolderApi(mode: ApiMode = 'eden'): IFolderApi {
 
 // Export default instance using Eden Treaty
 export const folderApi = createFolderApi('eden');
-export default FolderApiService;
+export default folderApi;

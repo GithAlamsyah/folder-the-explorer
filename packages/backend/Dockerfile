@@ -1,16 +1,17 @@
 FROM oven/bun:1 AS base
 WORKDIR /app
 
-# Install dependencies
-FROM base AS install
-RUN mkdir -p /temp/dev
-COPY package.json bun.lockb /temp/dev/
-RUN cd /temp/dev && bun install --frozen-lockfile
+# Copy root workspace files for dependency resolution
+COPY package.json bun.lock ./
+COPY packages/backend/package.json ./packages/backend/
 
-# Copy source code
-FROM base AS prerelease
-COPY --from=install /temp/dev/node_modules node_modules
-COPY . .
+# Install dependencies
+RUN bun install
+
+# Copy backend source code
+COPY packages/backend ./packages/backend
+
+WORKDIR /app/packages/backend
 
 # Set environment variables
 ENV NODE_ENV=production
