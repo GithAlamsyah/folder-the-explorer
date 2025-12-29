@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import FolderApiService from '../api';
+import { FolderApiService } from '../api';
 import type { Folder, ApiResponse } from '../types';
 
 // Mock fetch

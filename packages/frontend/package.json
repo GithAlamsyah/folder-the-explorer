@@ -5,9 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "bun build",
     "preview": "vite preview",
-    "test:unit": "bun x vitest"
+    "test:unit": "bunx vitest"
   },
   "dependencies": {
     "@elysiajs/eden": "^1.1.3",

@@ -1,12 +1,12 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { mount, flushPromises } from '@vue/test-utils';
 import FolderExplorer from '../FolderExplorer.vue';
 import FolderTree from '../FolderTree.vue';
 import FolderList from '../FolderList.vue';
 
 // Mock the API
-vi.mock('../../api', () => ({
-    folderApi: {
+vi.mock('../../api', () => {
+    const mockFoldersApi = {
         getAllFolders: vi.fn(() => Promise.resolve([
             { id: '1', name: 'Documents', parentId: null, path: '/Documents', level: 0 },
             { id: '2', name: 'Work', parentId: '1', path: '/Documents/Work', level: 1 },
@@ -14,8 +14,13 @@ vi.mock('../../api', () => ({
         getFolderChildren: vi.fn(() => Promise.resolve([
             { id: '2', name: 'Work', parentId: '1', path: '/Documents/Work', level: 1 },
         ])),
-    },
-}));
+    }
+    return { 
+        foldersApi: mockFoldersApi,
+        default : mockFoldersApi,
+     };
+}
+);
 
 describe('FolderExplorer', () => {
     it('should render the component', () => {
