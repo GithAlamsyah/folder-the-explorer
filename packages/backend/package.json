@@ -8,8 +8,8 @@
         "start": "bun src/index.ts",
         "build": "bun build src/index.ts --outdir ./dist --target bun",
         "db:generate": "drizzle-kit generate",
-        "db:migrate": "bun src/infrastructure/database/migrate.ts",
-        "db:seed": "bun src/infrastructure/database/seed.ts",
+        "db:migrate:postgres": "bun src/infrastructure/database/drizzle/postgres/migrate.postgres.ts",
+        "db:seed:postgres": "bun src/infrastructure/database/drizzle/postgres/seed.postgres.ts",
         "db:studio": "drizzle-kit studio",
         "test": "bun test"
     },

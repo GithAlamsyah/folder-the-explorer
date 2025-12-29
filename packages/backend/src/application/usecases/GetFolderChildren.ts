@@ -16,6 +16,12 @@ export class GetFolderChildren {
      * @returns Promise<Folder[]> - Array of child folders
      */
     async execute(parentId: string | null): Promise<Folder[]> {
+        if (parentId !== null) {
+            const parent = await this.folderRepository.getById(parentId);
+            if (!parent) {
+                throw new Error('Parent folder not found');
+            }
+        }
         return await this.folderRepository.getChildren(parentId);
     }
 }

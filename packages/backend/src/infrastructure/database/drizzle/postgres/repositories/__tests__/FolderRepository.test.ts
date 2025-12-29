@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'bun:test';
-import { FolderRepository } from '../FolderRepository';
-import { TEST_FOLDER_IDS } from '../__tests__/constants/folder-ids';
+import { PostgresFolderRepository as FolderRepository } from '../FolderRepository';
+import { TEST_FOLDER_IDS } from './constants/folder-ids';
 
 describe('FolderRepository', () => {
     let repository: FolderRepository;
@@ -101,7 +101,7 @@ describe('FolderRepository', () => {
             setup();
 
             // Act
-            const result = await repository.getChildren(DOCUMENTS); 
+            const result = await repository.getChildren(DOCUMENTS);
 
             // Assert
             expect(result.length).toBeGreaterThan(0);
@@ -115,7 +115,7 @@ describe('FolderRepository', () => {
             setup();
 
             // Act
-            const result = await repository.getChildren(TUTORIALS); 
+            const result = await repository.getChildren(TUTORIALS);
 
             // Assert
             expect(result).toHaveLength(0);
@@ -137,8 +137,8 @@ describe('FolderRepository', () => {
             setup();
 
             // Act
-            const level1 = await repository.getChildren(DOCUMENTS); 
-            const level2 = await repository.getChildren(WORK); 
+            const level1 = await repository.getChildren(DOCUMENTS);
+            const level2 = await repository.getChildren(WORK);
 
             // Assert
             expect(level1.every(f => f.level === 1)).toBe(true);

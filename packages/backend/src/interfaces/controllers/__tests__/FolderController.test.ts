@@ -2,9 +2,41 @@ import { describe, it, expect } from 'bun:test';
 import { treaty } from '@elysiajs/eden';
 import { folderController } from '../FolderController';
 import { TEST_FOLDER_IDS } from '../__tests__/constants/folder-ids';
+import type { IDatabaseAdapter } from '../../../infrastructure/database/IDatabaseAdapter';
+import type { IFolderRepository } from '../../../domain/repositories/IFolderRepository';
+import type { Folder } from '../../../domain/entities/Folder';
+
+// Mock Implementation
+class MockFolderRepository implements IFolderRepository {
+    private mockFolders: Folder[] = [
+        { id: TEST_FOLDER_IDS.DOCUMENTS, name: 'Documents', parentId: null, path: '/Documents', level: 0 },
+        { id: TEST_FOLDER_IDS.WORK, name: 'Work', parentId: TEST_FOLDER_IDS.DOCUMENTS, path: '/Documents/Work', level: 1 },
+        { id: TEST_FOLDER_IDS.TUTORIALS, name: 'Tutorials', parentId: null, path: '/Tutorials', level: 0 },
+    ];
+
+    async getAll(): Promise<Folder[]> {
+        return this.mockFolders;
+    }
+
+    async getById(id: string): Promise<Folder | null> {
+        return this.mockFolders.find(f => f.id === id) ?? null;
+    }
+
+    async getChildren(parentId: string | null): Promise<Folder[]> {
+        return this.mockFolders.filter(f => f.parentId === parentId);
+    }
+}
+
+class MockDatabaseAdapter implements IDatabaseAdapter {
+    createRepository(): IFolderRepository {
+        return new MockFolderRepository();
+    }
+    async runMigrations(): Promise<void> {}
+}
 
 describe('FolderController API', () => {
-    const api = treaty(folderController);
+    const app = folderController(new MockDatabaseAdapter());
+    const api = treaty(app);
     const { DOCUMENTS, WORK, TUTORIALS, INVALID } = TEST_FOLDER_IDS;
 
     describe('GET /api/v1/folders', () => {

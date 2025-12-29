@@ -70,15 +70,19 @@ describe('GetFolderChildren Use Case', () => {
         expect(result).toHaveLength(0);
     });
 
-    it('should return empty array for non-existent parent', async () => {
+    it('should throw error when parent folder does not exist', async () => {
         // Arrange
         const mockRepository = new MockFolderRepository();
         const useCase = new GetFolderChildren(mockRepository);
 
-        // Act
-        const result = await useCase.execute('999');
-
-        // Assert
-        expect(result).toHaveLength(0);
+        // Act & Assert
+        try {
+            await useCase.execute('999');
+            // Fail if no error is thrown
+            expect(true).toBe(false);
+        } catch (error) {
+            expect(error instanceof Error).toBe(true);
+            expect((error as Error).message).toBe('Parent folder not found');
+        }
     });
 });

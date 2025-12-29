@@ -1,14 +1,14 @@
-import { db, sql } from './connection';
-import { folders } from './schemas/folders';
+import { dbClient, drizzleClient } from './client.postgres';
+import { folders } from '../schemas/folders';
 
-import { seedFolders } from './seeds/folders.seeds';
+import { seedFolders } from '../seeds/folders.seeds';
 
 /**
  * Database Seeding Function
  * Populates the database with initial folder data
  * Safe to call programmatically (doesn't close connection)
  */
-export async function runSeeds(options: { force?: boolean } = {}) {
+export async function postgresSeed(options: { force?: boolean } = {}) {
     console.log('🌱 Seeding database...');
 
     try {
@@ -20,8 +20,8 @@ export async function runSeeds(options: { force?: boolean } = {}) {
         }
 
         // Check if data already exists
-        const existingFolders = await db.select().from(folders).limit(1);
-        
+        const existingFolders = await drizzleClient.select().from(folders).limit(1);
+
         if (existingFolders.length > 0 && !options.force) {
             console.log('ℹ️  Database already contains data. Skipping seed.');
             console.log('   Use { force: true } to clear and re-seed');
@@ -31,12 +31,12 @@ export async function runSeeds(options: { force?: boolean } = {}) {
         // Clear existing data if force is true
         if (options.force) {
             console.log('🧹 Clearing existing data...');
-            await db.delete(folders);
+            await drizzleClient.delete(folders);
         }
 
         // Insert seed data
         console.log('📝 Inserting seed data...');
-        await seedFolders();
+        await seedFolders(drizzleClient);
 
         console.log('✅ Database seeded successfully!');
     } catch (error) {
@@ -56,15 +56,15 @@ if (import.meta.main) {
     // Parse CLI arguments
     const args = Bun.argv.slice(2); // Remove 'bun' and script path
     const forceFlag = args.includes('--force');
-    
-    runSeeds({ force: forceFlag })
+
+    postgresSeed({ force: forceFlag })
         .then(() => {
             console.log('Seed script completed');
-            sql.end();
+            dbClient.end();
         })
         .catch((err) => {
             console.error('Seed script failed:', err);
-            sql.end();
+            dbClient.end();
             process.exit(1);
         });
 }

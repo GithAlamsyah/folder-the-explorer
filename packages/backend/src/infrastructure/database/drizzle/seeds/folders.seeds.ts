@@ -1,7 +1,6 @@
-import { db } from '../connection';
 import { folders } from '../schemas/folders';
 
-export async function seedFolders() {
+export async function seedFolders(dbClient: any) {
     const seedsFolders = [
         // Root level folders (level 0)
         { id: '00000000-0000-0000-0000-000000000001', name: 'Documents', parentId: null, path: '/Documents', level: 0 },
@@ -54,7 +53,7 @@ export async function seedFolders() {
         { id: '00000000-0000-0000-0000-000000000030', name: 'Tutorials', parentId: '00000000-0000-0000-0000-000000000005', path: '/Videos/Tutorials', level: 1 },
     ];
     try {
-        await db.insert(folders).values(seedsFolders);
+        await dbClient.insert(folders).values(seedsFolders);
         console.log('✅ Folders seeded successfully!');
     } catch (error) {
         console.error('❌ Failed to seed folders:', error);
